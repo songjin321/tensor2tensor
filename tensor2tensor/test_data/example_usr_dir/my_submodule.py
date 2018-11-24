@@ -13,87 +13,77 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Example registrations for T2T."""
-import re
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
+import hashlib
+import io
+import os
+import tarfile
+import six
+from tensor2tensor.data_generators import generator_utils
 from tensor2tensor.data_generators import problem
+from tensor2tensor.data_generators import text_encoder
 from tensor2tensor.data_generators import text_problems
-from tensor2tensor.layers import common_hparams
+from tensor2tensor.data_generators import wiki_lm
 from tensor2tensor.utils import registry
+import json
+import tensorflow as tf
 
-# Use register_model for a new T2TModel
-# Use register_problem for a new Problem
-# Use register_hparams for a new hyperparameter set
+# Links to data from http://cs.nyu.edu/~kcho/DMQA/
+BUCKET = 'bytecup2018' #@param {type:"string"}
+assert BUCKET, 'Must specify an existing GCS bucket name'
+TASK_DATA_DIR = 'gs://{}/bytecup2018'.format(BUCKET)
+TRAIN_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.0.txt")
+print('***** Task data directory: {} *****'.format(TASK_DATA_DIR))
 
+def _story_summary_split(story):
+  split_str = u" <summary> "
+  split_str_len = len(split_str)
+  split_pos = story.find(split_str)
+  return story[:split_pos], story[split_pos + split_str_len:]  # story, summary
 
-@registry.register_hparams
-def my_very_own_hparams():
-  # Start with the base set
-  hp = common_hparams.basic_params1()
-  # Modify existing hparams
-  hp.num_hidden_layers = 2
-  # Add new hparams
-  hp.add_hparam("filter_size", 2048)
-  return hp
-
+def example_generator(all_files, sum_token):
+    """Generate examples."""
+    with tf.gfile.Open(all_files, "r") as f:
+        lines = f.readlines()
+    for (i, line) in enumerate(lines):
+        story = json.loads(line)['content']
+        summary = json.loads(line)['title']
+        story_summary_split_token = u" <summary> " if sum_token else " "
+        yield " ".join(story) + story_summary_split_token + " ".join(summary)
 
 @registry.register_problem
-class PoetryLines(text_problems.Text2TextProblem):
-  """Predict next line of poetry from the last line. From Gutenberg texts."""
+class HeadlineByte(text_problems.Text2TextProblem):
+  """Headline generation for byte competetion"""
 
-  @property
-  def approx_vocab_size(self):
-    return 2**13  # ~8k
-
-  @property
-  def is_generate_per_split(self):
-    # generate_data will shard the data into TRAIN and EVAL for us.
-    return False
+  def generate_text_for_vocab(self, data_dir, tmp_dir):
+    del data_dir
+    all_files = TRAIN_DATA_PATH
+    return example_generator(all_files, sum_token=False)
 
   @property
   def dataset_splits(self):
     """Splits of data to produce and number of output shards for each."""
-    # 10% evaluation data
     return [{
         "split": problem.DatasetSplit.TRAIN,
-        "shards": 9,
+        "shards": 1000,
     }, {
         "split": problem.DatasetSplit.EVAL,
         "shards": 1,
+    }, {
+        "split": problem.DatasetSplit.TEST,
+        "shards": 1,
     }]
+
+  def is_generate_per_split(self):
+    return False
 
   def generate_samples(self, data_dir, tmp_dir, dataset_split):
     del data_dir
-    del tmp_dir
-    del dataset_split
+    all_files = TRAIN_DATA_PATH
+    for example in example_generator(all_files, sum_token=True):
+      story, summary = _story_summary_split(example)
+      yield {"inputs": story, "targets": summary}
 
-    # pylint: disable=g-import-not-at-top
-    from gutenberg import acquire
-    from gutenberg import cleanup
-    # pylint: enable=g-import-not-at-top
-
-    books = [
-        # bookid, skip N lines
-        (19221, 223),
-        (15553, 522),
-    ]
-
-    for (book_id, toskip) in books:
-      text = cleanup.strip_headers(acquire.load_etext(book_id)).strip()
-      lines = text.split("\n")[toskip:]
-      prev_line = None
-      ex_count = 0
-      for line in lines:
-        # Any line that is all upper case is a title or author name
-        if not line or line.upper() == line:
-          prev_line = None
-          continue
-
-        line = re.sub("[^a-z]+", " ", line.strip().lower())
-        if prev_line and line:
-          yield {
-              "inputs": prev_line,
-              "targets": line,
-          }
-          ex_count += 1
-        prev_line = line
