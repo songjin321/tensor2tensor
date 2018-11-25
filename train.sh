@@ -17,8 +17,8 @@ t2t-trainer \
   --model=$MODEL \
   --hparams_set=$HPARAMS \
   --output_dir=$TRAIN_DIR \
-  --t2t_usr_dir=$USER_DIR
-  --train_steps=10000 \
+  --t2t_usr_dir=$USER_DIR \
+  --train_steps=50000 \
   --eval_steps=1000 \
   --use_tpu \
   --cloud_tpu_name=$TPU_NAME
