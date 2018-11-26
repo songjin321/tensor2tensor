@@ -28,6 +28,7 @@ from tensor2tensor.data_generators import text_encoder
 from tensor2tensor.data_generators import text_problems
 from tensor2tensor.data_generators import wiki_lm
 from tensor2tensor.utils import registry
+from tensor2tensor.model.transformer import *
 import json
 import tensorflow as tf
 
@@ -87,3 +88,11 @@ class HeadlineByte(text_problems.Text2TextProblem):
       story, summary = _story_summary_split(example)
       yield {"inputs": story, "targets": summary}
 
+@registry.register_hparams
+def transformer_headline():
+  hparams = transformer_base_v2()
+  hparams.prepend_mode = "prepend_inputs_masked_attention"
+  hparams.max_length = 256
+  hparams.batch_size = 64
+  update_hparams_for_tpu(hparams)
+  return hparams
