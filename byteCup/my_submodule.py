@@ -28,7 +28,7 @@ from tensor2tensor.data_generators import text_encoder
 from tensor2tensor.data_generators import text_problems
 from tensor2tensor.data_generators import wiki_lm
 from tensor2tensor.utils import registry
-from tensor2tensor.model.transformer import *
+from tensor2tensor.models.transformer import *
 import json
 import tensorflow as tf
 
