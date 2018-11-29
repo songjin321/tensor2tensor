@@ -37,23 +37,6 @@ assert BUCKET, 'Must specify an existing GCS bucket name'
 TASK_DATA_DIR = 'gs://{}/bytecup2018'.format(BUCKET)
 TRAIN_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.0.txt")
 
-
-def _story_summary_split(story):
-  split_str = u" <summary> "
-  split_str_len = len(split_str)
-  split_pos = story.find(split_str)
-  return story[:split_pos], story[split_pos + split_str_len:]  # story, summary
-
-def example_generator(all_files, sum_token):
-    """Generate examples."""
-    with tf.gfile.Open(all_files, "r") as f:
-        lines = f.readlines()
-    for line in lines:
-        story = json.loads(line)['content'][:512]
-        summary = json.loads(line)['title']
-        story_summary_split_token = u" <summary> " if sum_token else " "
-        yield " ".join(story) + story_summary_split_token + " ".join(summary)
-
 @registry.register_problem
 class HeadlineByte(text_problems.Text2TextProblem):
   """Headline generation for byte competetion"""
@@ -78,10 +61,13 @@ class HeadlineByte(text_problems.Text2TextProblem):
     del data_dir
     del tmp_dir
     del dataset_split
-    all_files = TRAIN_DATA_PATH
-    for example in example_generator(all_files, sum_token=True):
-      story, summary = _story_summary_split(example)
-      yield {"inputs": story, "targets": summary}
+    """Generate samples."""
+    with tf.gfile.Open(TRAIN_DATA_PATH, "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            story = json.loads(line)['content'][:512]
+            summary = json.loads(line)['title']
+            yield {"inputs": story, "targets": summary}
 
   @property
   def packed_length(self):
