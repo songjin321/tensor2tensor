@@ -2,12 +2,11 @@
 
 PROBLEM=headline_byte
 MODEL=transformer
-HPARAMS=transformer_tpu
-
-STORAGE_BUCKET=gs://bytecup2018/tensor2tensor
-DATA_DIR=$STORAGE_BUCKET/t2t_data/t2t_data
-TRAIN_DIR=$STORAGE_BUCKET/t2t_train/t2t_train/headline_byte/transformer-transformer_prepend
+HPARAMS=transformer_headline
 USER_DIR=$HOME/tensor2tensor/byteCup
+STORAGE_BUCKET=gs://bytecup2018/tensor2tensor
+DATA_DIR=$STORAGE_BUCKET/t2t_data
+TRAIN_DIR=$STORAGE_BUCKET/t2t_train/headline_byte
 
 # Train
 # *  If you run out of memory, add --hparams='batch_size=1024'.
@@ -16,11 +15,9 @@ t2t-trainer \
   --problem=$PROBLEM \
   --model=$MODEL \
   --hparams_set=$HPARAMS \
-  --hparams='batch_size=1024'\
   --output_dir=$TRAIN_DIR \
   --t2t_usr_dir=$USER_DIR \
-  --train_steps=50000 \
+  --train_steps=10000 \
   --eval_steps=1000 \
-  --use_tpu \
-  --cloud_tpu_name=$TPU_NAME
+  --use_tpu=True \
 

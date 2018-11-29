@@ -115,6 +115,6 @@ def transformer_headline():
   hparams = transformer_base_v2()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
   hparams.max_length = 256
-  hparams.batch_size = 256
+  hparams.batch_size = 128
   update_hparams_for_tpu(hparams)
   return hparams
