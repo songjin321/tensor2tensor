@@ -35,7 +35,8 @@ import tensorflow as tf
 BUCKET = 'bytecup2018' 
 assert BUCKET, 'Must specify an existing GCS bucket name'
 TASK_DATA_DIR = 'gs://{}/bytecup2018'.format(BUCKET)
-TRAIN_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.0.txt")
+train_files_size = 4
+CONTENT_MAX_LENGTH = 3000
 
 @registry.register_problem
 class HeadlineByte(text_problems.Text2TextProblem):
@@ -48,36 +49,40 @@ class HeadlineByte(text_problems.Text2TextProblem):
         "shards": 100,
     }, {
         "split": problem.DatasetSplit.EVAL,
-        "shards": 1,
-    }, {
-        "split": problem.DatasetSplit.TEST,
-        "shards": 1,
+        "shards": 10,
     }]
 
   def is_generate_per_split(self):
-    return False
+    return True
 
   def generate_samples(self, data_dir, tmp_dir, dataset_split):
     del data_dir
     del tmp_dir
     del dataset_split
     """Generate samples."""
-    with tf.gfile.Open(TRAIN_DATA_PATH, "r") as f:
-        lines = f.readlines()
-        for line in lines:
-            story = json.loads(line)['content'][:2000]
-            summary = json.loads(line)['title']
-            yield {"inputs": story, "targets": summary}
-
-  @property
-  def packed_length(self):
-    return 256
+    if dataset_split == problem.DatasetSplit.TRAIN:
+        for i in range(train_files_size):
+            TRAIN_DATA_PATH = 'gs://{}/bytecup2018/bytecup.corpus.train.{}.txt'.format(BUCKET,i)
+            with tf.gfile.Open(TRAIN_DATA_PATH, "r") as f:
+                lines = f.readlines()
+                for line in lines:
+                    story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
+                    summary = json.loads(line)['title']
+                    yield {"inputs": story, "targets": summary}
+    elif dataset_split == problem.DatasetSplit.EVAL:
+        EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
+        with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
+                summary = json.loads(line)['title']
+                yield {"inputs": story, "targets": summary}
 
 @registry.register_hparams
 def transformer_headline():
   hparams = transformer_base_v2()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
   hparams.max_length = 256
-  hparams.batch_size = 64
+  hparams.batch_size = 512
   update_hparams_for_tpu(hparams)
   return hparams
