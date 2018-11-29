@@ -73,10 +73,6 @@ class HeadlineByte(text_problems.Text2TextProblem):
   def packed_length(self):
     return 256
 
-  @property
-  def max_samples_for_vocab(self):
-    return 20000
-
 @registry.register_hparams
 def transformer_headline():
   hparams = transformer_base_v2()
