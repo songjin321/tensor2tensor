@@ -85,7 +85,7 @@ class HeadlineByte(text_problems.Text2TextProblem):
     return 1024
 
 @registry.register_problem
-class HeadlineTest(text_problems.Text2TextProblem):
+class HeadlineTest(HeadlineByte):
   """Headline Test for byte competetion"""
   @property
   def dataset_splits(self):
@@ -94,6 +94,14 @@ class HeadlineTest(text_problems.Text2TextProblem):
         "split": problem.DatasetSplit.TEST,
         "shards": 1,
     }]
+    
+  @property
+  def vocab_filename(self):
+    return HeadlineByte().vocab_filename
+
+  @property
+  def packed_length(self):
+    return None
 
   def is_generate_per_split(self):
     return True
