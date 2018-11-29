@@ -65,7 +65,7 @@ class HeadlineByte(text_problems.Text2TextProblem):
     with tf.gfile.Open(TRAIN_DATA_PATH, "r") as f:
         lines = f.readlines()
         for line in lines:
-            story = json.loads(line)['content'][:512]
+            story = json.loads(line)['content'][:2000]
             summary = json.loads(line)['title']
             yield {"inputs": story, "targets": summary}
 
