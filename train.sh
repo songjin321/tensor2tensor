@@ -20,4 +20,4 @@ t2t-trainer \
   --train_steps=10000 \
   --eval_steps=1000 \
   --use_tpu=True \
-
+  --cloud_tpu_name=$TPU_NAME
