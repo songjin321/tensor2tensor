@@ -58,7 +58,6 @@ class HeadlineByte(text_problems.Text2TextProblem):
   def generate_samples(self, data_dir, tmp_dir, dataset_split):
     del data_dir
     del tmp_dir
-    del dataset_split
     """Generate samples."""
     if dataset_split == problem.DatasetSplit.TRAIN:
         for i in range(train_files_size):
