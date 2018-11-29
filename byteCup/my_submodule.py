@@ -65,7 +65,9 @@ class HeadlineByte(text_problems.Text2TextProblem):
             with tf.gfile.Open(TRAIN_DATA_PATH, "r") as f:
                 lines = f.readlines()
                 for line in lines:
-                    story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
+                    story = json.loads(line)['content']
+                    if len(story) > CONTENT_MAX_LENGTH:
+                        continue
                     summary = json.loads(line)['title']
                     yield {"inputs": story, "targets": summary}
     elif dataset_split == problem.DatasetSplit.EVAL:
@@ -73,15 +75,46 @@ class HeadlineByte(text_problems.Text2TextProblem):
         with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
             lines = f.readlines()
             for line in lines:
-                story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
+                story = json.loads(line)['content']
+                if len(story) > CONTENT_MAX_LENGTH:
+                        continue
                 summary = json.loads(line)['title']
                 yield {"inputs": story, "targets": summary}
+  @property
+  def packed_length(self):
+    return 1024
+
+@registry.register_problem
+class HeadlineTest(text_problems.Text2TextProblem):
+  """Headline Test for byte competetion"""
+  @property
+  def dataset_splits(self):
+    """Splits of data to produce and number of output shards for each."""
+    return [{
+        "split": problem.DatasetSplit.TEST,
+        "shards": 1,
+    }]
+
+  def is_generate_per_split(self):
+    return True
+
+  def generate_samples(self, data_dir, tmp_dir, dataset_split):
+    del data_dir
+    del tmp_dir
+    """Generate samples."""
+    if dataset_split == problem.DatasetSplit.TEST:
+        EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.validation_set.txt")
+        with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                story = json.loads(line)['content']
+                yield {"inputs": story}
 
 @registry.register_hparams
 def transformer_headline():
   hparams = transformer_base_v2()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
   hparams.max_length = 256
-  hparams.batch_size = 512
+  hparams.batch_size = 256
   update_hparams_for_tpu(hparams)
   return hparams
