@@ -87,13 +87,14 @@ class HeadlineByte(text_problems.Text2TextProblem):
                 story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
                 summary = json.loads(line)['title']
                 yield {"inputs": story, "targets": summary}
-  @property
-  def max_samples_for_vocab(self):
-    return 250000
 
   @property
   def packed_length(self):
     return 4096
+
+  @property
+  def vocab_filename(self):
+    return wiki_lm.LanguagemodelEnWiki32k().vocab_filename
 
 @registry.register_problem
 class HeadlineTest(HeadlineByte):
