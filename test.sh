@@ -1,5 +1,5 @@
 # Decode
-PROBLEM=headline_byte
+PROBLEM=headline_test
 MODEL=transformer
 HPARAMS=transformer_headline
 USER_DIR=$HOME/tensor2tensor/byteCup
