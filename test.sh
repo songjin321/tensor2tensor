@@ -6,7 +6,7 @@ USER_DIR=$HOME/tensor2tensor/byteCup
 STORAGE_BUCKET=gs://bytecup2018/tensor2tensor
 DATA_DIR=$STORAGE_BUCKET/t2t_data
 TRAIN_DIR=$STORAGE_BUCKET/t2t_train/headline_byte
-OUTPUT_FILE=$STORAGE_BUCKET/t2t_train/headline_byte/headline.txt
+OUTPUT_FILE=$STORAGE_BUCKET/t2t_train/headline.txt
 
 BEAM_SIZE=4
 ALPHA=0.6
