@@ -35,8 +35,8 @@ import tensorflow as tf
 BUCKET = 'bytecup2018' 
 assert BUCKET, 'Must specify an existing GCS bucket name'
 TASK_DATA_DIR = 'gs://{}/bytecup2018'.format(BUCKET)
-train_files_size = 4
-CONTENT_MAX_LENGTH = 3000
+train_files_size = 8
+CONTENT_MAX_LENGTH = 900
 
 @registry.register_problem
 class HeadlineByte(text_problems.Text2TextProblem):
@@ -46,10 +46,13 @@ class HeadlineByte(text_problems.Text2TextProblem):
     """Splits of data to produce and number of output shards for each."""
     return [{
         "split": problem.DatasetSplit.TRAIN,
-        "shards": 100,
+        "shards": 20,
     }, {
         "split": problem.DatasetSplit.EVAL,
-        "shards": 10,
+        "shards": 1,
+    },{
+        "split": problem.DatasetSplit.TEST,
+        "shards": 1,
     }]
 
   def is_generate_per_split(self):
@@ -65,24 +68,32 @@ class HeadlineByte(text_problems.Text2TextProblem):
             with tf.gfile.Open(TRAIN_DATA_PATH, "r") as f:
                 lines = f.readlines()
                 for line in lines:
-                    story = json.loads(line)['content']
-                    if len(story) > CONTENT_MAX_LENGTH:
-                        continue
+                    story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
                     summary = json.loads(line)['title']
                     yield {"inputs": story, "targets": summary}
     elif dataset_split == problem.DatasetSplit.EVAL:
         EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
         with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
             lines = f.readlines()
-            for line in lines:
-                story = json.loads(line)['content']
-                if len(story) > CONTENT_MAX_LENGTH:
-                        continue
+            for line in lines[:len(lines)/2]:
+                story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
+                summary = json.loads(line)['title']
+                yield {"inputs": story, "targets": summary}
+    else:
+        TEST_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
+        with tf.gfile.Open(TEST_DATA_PATH, "r") as f:
+            lines = f.readlines()
+            for line in lines[len(lines)/2:]:
+                story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
                 summary = json.loads(line)['title']
                 yield {"inputs": story, "targets": summary}
   @property
+  def max_samples_for_vocab(self):
+    return 250000
+
+  @property
   def packed_length(self):
-    return 1024
+    return 4096
 
 @registry.register_problem
 class HeadlineTest(HeadlineByte):
@@ -122,7 +133,5 @@ class HeadlineTest(HeadlineByte):
 def transformer_headline():
   hparams = transformer_base_v2()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
-  hparams.max_length = 256
-  hparams.batch_size = 512
   update_hparams_for_tpu(hparams)
   return hparams
