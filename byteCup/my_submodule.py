@@ -36,7 +36,7 @@ BUCKET = 'bytecup2018'
 assert BUCKET, 'Must specify an existing GCS bucket name'
 TASK_DATA_DIR = 'gs://{}/bytecup2018'.format(BUCKET)
 train_files_size = 8
-CONTENT_MAX_LENGTH = 900
+CONTENT_MAX_LENGTH = 800
 
 @registry.register_problem
 class HeadlineByte(text_problems.Text2TextProblem):
@@ -90,7 +90,7 @@ class HeadlineByte(text_problems.Text2TextProblem):
 
   @property
   def packed_length(self):
-    return 4096
+    return 1024
 
   @property
   def vocab_filename(self):
