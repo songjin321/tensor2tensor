@@ -75,7 +75,7 @@ class HeadlineByte(text_problems.Text2TextProblem):
         EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
         with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
             lines = f.readlines()
-            for line in lines[:floor(len(lines)/2)]:
+            for line in lines[:int(len(lines)/2)]:
                 story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
                 summary = json.loads(line)['title']
                 yield {"inputs": story, "targets": summary}
@@ -83,7 +83,7 @@ class HeadlineByte(text_problems.Text2TextProblem):
         TEST_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
         with tf.gfile.Open(TEST_DATA_PATH, "r") as f:
             lines = f.readlines()
-            for line in lines[floor(len(lines)/2):]:
+            for line in lines[int(len(lines)/2):]:
                 story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
                 summary = json.loads(line)['title']
                 yield {"inputs": story, "targets": summary}
