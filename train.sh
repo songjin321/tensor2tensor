@@ -6,7 +6,7 @@ HPARAMS=transformer_headline
 USER_DIR=$HOME/tensor2tensor/byteCup
 STORAGE_BUCKET=gs://bytecup2018/tensor2tensor
 DATA_DIR=$STORAGE_BUCKET/t2t_data
-TRAIN_DIR=$STORAGE_BUCKET/t2t_train/headline_byte
+TRAIN_DIR=$STORAGE_BUCKET/t2t_train/headline_byte_big
 
 # Train
 # *  If you run out of memory, add --hparams='batch_size=1024'.

@@ -132,7 +132,8 @@ class HeadlineTest(HeadlineByte):
 
 @registry.register_hparams
 def transformer_headline():
-  hparams = transformer_base_v2()
+  hparams = transformer_base_v3()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
   update_hparams_for_tpu(hparams)
+  hparams.batch_size = 4096
   return hparams
