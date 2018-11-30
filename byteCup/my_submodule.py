@@ -128,7 +128,7 @@ class HeadlineTest(HeadlineByte):
             lines = f.readlines()
             for line in lines:
                 story = json.loads(line)['content']
-                yield {"inputs": story, "targets": None}
+                yield {"inputs": story, "targets": ''}
 
 @registry.register_hparams
 def transformer_headline():
