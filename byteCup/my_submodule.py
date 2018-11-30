@@ -47,7 +47,7 @@ class HeadlineByte(text_problems.Text2TextProblem):
     """Splits of data to produce and number of output shards for each."""
     return [{
         "split": problem.DatasetSplit.TRAIN,
-        "shards": 20,
+        "shards": 10,
     }, {
         "split": problem.DatasetSplit.EVAL,
         "shards": 1,
@@ -92,6 +92,9 @@ class HeadlineByte(text_problems.Text2TextProblem):
   @property
   def vocab_filename(self):
     return wiki_lm.LanguagemodelEnWiki32k().vocab_filename
+  @property
+  def packed_length(self):
+    return 512
 
 @registry.register_problem
 class HeadlineTest(HeadlineByte):
@@ -132,6 +135,5 @@ def transformer_headline():
   hparams = transformer_big()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
   update_hparams_for_tpu(hparams)
-  hparams.max_length = 512
   hparams.batch_size = 2048 * 4
   return hparams
