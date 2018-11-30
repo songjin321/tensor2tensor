@@ -36,7 +36,8 @@ BUCKET = 'bytecup2018'
 assert BUCKET, 'Must specify an existing GCS bucket name'
 TASK_DATA_DIR = 'gs://{}/bytecup2018'.format(BUCKET)
 train_files_size = 8
-CONTENT_MAX_LENGTH = 800
+CONTENT_MAX_LENGTH = 412
+TITLE_MAX_LENGTH = 100
 
 @registry.register_problem
 class HeadlineByte(text_problems.Text2TextProblem):
@@ -69,7 +70,7 @@ class HeadlineByte(text_problems.Text2TextProblem):
                 lines = f.readlines()
                 for line in lines:
                     story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
-                    summary = json.loads(line)['title']
+                    summary = json.loads(line)['title'][:TITLE_MAX_LENGTH]
                     yield {"inputs": story, "targets": summary}
     elif dataset_split == problem.DatasetSplit.EVAL:
         EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
@@ -77,7 +78,7 @@ class HeadlineByte(text_problems.Text2TextProblem):
             lines = f.readlines()
             for line in lines[:int(len(lines)/2)]:
                 story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
-                summary = json.loads(line)['title']
+                summary = json.loads(line)['title'][:TITLE_MAX_LENGTH]
                 yield {"inputs": story, "targets": summary}
     else:
         TEST_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
@@ -85,12 +86,8 @@ class HeadlineByte(text_problems.Text2TextProblem):
             lines = f.readlines()
             for line in lines[int(len(lines)/2):]:
                 story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
-                summary = json.loads(line)['title']
+                summary = json.loads(line)['title'][:TITLE_MAX_LENGTH]
                 yield {"inputs": story, "targets": summary}
-
-  @property
-  def packed_length(self):
-    return 1024
 
   @property
   def vocab_filename(self):
@@ -135,5 +132,6 @@ def transformer_headline():
   hparams = transformer_big()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
   update_hparams_for_tpu(hparams)
-  hparams.batch_size = 2048 * 3
+  hparams.max_length = 512
+  hparams.batch_size = 2048 * 4
   return hparams
