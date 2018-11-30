@@ -18,7 +18,7 @@ t2t-decoder \
   --hparams_set=$HPARAMS \
   --output_dir=$TRAIN_DIR \
   --decode_hparams="beam_size=$BEAM_SIZE,alpha=$ALPHA" \
-  --eval_use_test_set=True
+  --eval_use_test_set=True \
   --decode_to_file=$OUTPUT_FILE \
   --t2t_usr_dir=$USER_DIR \
   --use_tpu=True \
