@@ -123,7 +123,7 @@ class HeadlineTest(HeadlineByte):
     del tmp_dir
     """Generate samples."""
     if dataset_split == problem.DatasetSplit.TEST:
-        EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.validation_set.txt")
+        EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
         with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
             lines = f.readlines()
             for line in lines:
@@ -142,5 +142,5 @@ def transformer_headline_test():
   hparams = transformer_base()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
   update_hparams_for_tpu(hparams)
-  hparams.batch_size = 4096
+  hparams.batch_size = 2048
   return hparams
