@@ -41,8 +41,8 @@ BUCKET = 'bytecup2018'
 assert BUCKET, 'Must specify an existing GCS bucket name'
 TASK_DATA_DIR = 'gs://{}/bytecup2018'.format(BUCKET)
 train_files_size = 8
-CONTENT_MAX_LENGTH = 412
-TITLE_MAX_LENGTH = 100
+CONTENT_MAX_LENGTH = 824
+TITLE_MAX_LENGTH = 200
 
 # Converts the unicode file to ascii
 def unicode_to_ascii(s):
@@ -115,13 +115,10 @@ class HeadlineByte(text_problems.Text2TextProblem):
               # summary = preprocess_sentence(json.loads(line)['title'])[:TITLE_MAX_LENGTH]
                 yield {"inputs": story, "targets": ''}
 
-  @property
-  def vocab_filename(self):
-    return wiki_lm.LanguagemodelEnWiki32k().vocab_filename
-
 @registry.register_hparams
 def transformer_headline():
-  hparams = transformer_base()
+  hparams = transformer_base_v2()
   hparams.prepend_mode = "prepend_inputs_full_attention"
   hparams.max_length = 0
+#  hparams.batch_size = 4096 * 2
   return hparams
