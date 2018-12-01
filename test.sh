@@ -21,5 +21,3 @@ t2t-decoder \
   --eval_use_test_set=True \
   --decode_to_file=$OUTPUT_FILE \
   --t2t_usr_dir=$USER_DIR \
-  --cloud_mlengine \
-  --worker_gpu=2 \

@@ -19,5 +19,3 @@ t2t-trainer \
   --t2t_usr_dir=$USER_DIR \
   --train_steps=20000 \
   --eval_steps=100 \
-  --cloud_mlengine \
-  --worker_gpu=2 \
