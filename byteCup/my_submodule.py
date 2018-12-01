@@ -127,7 +127,7 @@ class HeadlineTest(HeadlineByte):
         with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
             lines = f.readlines()
             for line in lines:
-                story = json.loads(line)['content']
+                story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
                 yield {"inputs": story, "targets": ''}
 
 @registry.register_hparams
@@ -135,4 +135,12 @@ def transformer_headline():
   hparams = transformer_big()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
   update_hparams_for_tpu(hparams)
+  return hparams
+
+@registry.register_hparams
+def transformer_headline_test():
+  hparams = transformer_base()
+  hparams.prepend_mode = "prepend_inputs_masked_attention"
+  update_hparams_for_tpu(hparams)
+  hparams.batch_size = 4096
   return hparams
