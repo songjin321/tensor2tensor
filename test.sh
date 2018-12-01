@@ -4,7 +4,7 @@ MODEL=transformer
 HPARAMS=transformer_headline
 USER_DIR=./byteCup
 STORAGE_BUCKET=gs://bytecup2018/tensor2tensor
-DATA_DIR=$STORAGE_BUCKET/t2t_data
+DATA_DIR=$STORAGE_BUCKET/t2t_datagen
 TRAIN_DIR=$STORAGE_BUCKET/t2t_train/headline_byte_GPU
 OUTPUT_FILE=$STORAGE_BUCKET/t2t_train/headline.txt
 

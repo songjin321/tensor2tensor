@@ -120,5 +120,5 @@ def transformer_headline():
   hparams = transformer_base_v2()
   hparams.prepend_mode = "prepend_inputs_full_attention"
   hparams.max_length = 0
-#  hparams.batch_size = 4096 * 2
+  hparams.batch_size = 4096 * 2
   return hparams

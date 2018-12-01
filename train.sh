@@ -17,5 +17,5 @@ t2t-trainer \
   --hparams_set=$HPARAMS \
   --output_dir=$TRAIN_DIR \
   --t2t_usr_dir=$USER_DIR \
-  --train_steps=15000 \
+  --train_steps=500000 \
   --eval_steps=100 \
