@@ -2,11 +2,11 @@
 
 PROBLEM=headline_byte
 MODEL=transformer
-HPARAMS=transformer_headline
+HPARAMS=transformer_prepend
 USER_DIR=$HOME/tensor2tensor/byteCup
 STORAGE_BUCKET=gs://bytecup2018/tensor2tensor
 DATA_DIR=$STORAGE_BUCKET/t2t_data
-TRAIN_DIR=$STORAGE_BUCKET/t2t_train/headline_byte_big
+TRAIN_DIR=$STORAGE_BUCKET/t2t_train/headline_byte_GPU
 
 # Train
 # *  If you run out of memory, add --hparams='batch_size=1024'.
@@ -19,5 +19,5 @@ t2t-trainer \
   --t2t_usr_dir=$USER_DIR \
   --train_steps=20000 \
   --eval_steps=100 \
-  --use_tpu=True \
-  --cloud_tpu_name=$TPU_NAME
+  --cloud_mlengine \
+  --worker_gpu=2 \

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 STORAGE_BUCKET=gs://bytecup2018/tensor2tensor
-PROBLEM=headline_byte_test
+PROBLEM=headline_byte
 DATA_DIR=$STORAGE_BUCKET/t2t_data/
 USER_DIR=$HOME/tensor2tensor/byteCup
 

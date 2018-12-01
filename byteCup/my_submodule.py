@@ -29,8 +29,13 @@ from tensor2tensor.data_generators import text_problems
 from tensor2tensor.data_generators import wiki_lm
 from tensor2tensor.utils import registry
 from tensor2tensor.models.transformer import *
-import json
+import unicodedata
+import re
+import numpy as np
+import os
+import time
 import tensorflow as tf
+import json
 
 BUCKET = 'bytecup2018' 
 assert BUCKET, 'Must specify an existing GCS bucket name'
@@ -38,6 +43,27 @@ TASK_DATA_DIR = 'gs://{}/bytecup2018'.format(BUCKET)
 train_files_size = 8
 CONTENT_MAX_LENGTH = 412
 TITLE_MAX_LENGTH = 100
+
+# Converts the unicode file to ascii
+def unicode_to_ascii(s):
+    return ''.join(c for c in unicodedata.normalize('NFD', s)
+        if unicodedata.category(c) != 'Mn')
+  
+def preprocess_sentence(w):
+    w = unicode_to_ascii(w.lower().strip())
+    
+    # creating a space between a word and the punctuation following it
+    # eg: "he is a boy." => "he is a boy ." 
+    # Reference:- https://stackoverflow.com/questions/3645931/python-padding-punctuation-with-white-spaces-keeping-punctuation
+    w = re.sub(r"([?.!,¿])", r" \1 ", w)
+    w = re.sub(r'[" "]+', " ", w)
+    
+    # replacing everything with space except (a-z, A-Z, ".", "?", "!", ",")
+    w = re.sub(r"[^a-zA-Z?.!,¿]+", " ", w)
+    
+    w = w.rstrip().strip()
+    
+    return w
 
 @registry.register_problem
 class HeadlineByte(text_problems.Text2TextProblem):
@@ -69,78 +95,33 @@ class HeadlineByte(text_problems.Text2TextProblem):
             with tf.gfile.Open(TRAIN_DATA_PATH, "r") as f:
                 lines = f.readlines()
                 for line in lines:
-                    story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
-                    summary = json.loads(line)['title'][:TITLE_MAX_LENGTH]
+                    story = preprocess_sentence(json.loads(line)['content'])[:CONTENT_MAX_LENGTH]
+                    summary = preprocess_sentence(json.loads(line)['title'])[:TITLE_MAX_LENGTH]
                     yield {"inputs": story, "targets": summary}
     elif dataset_split == problem.DatasetSplit.EVAL:
         EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
         with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
             lines = f.readlines()
-            for line in lines[:int(len(lines)/2)]:
-                story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
-                summary = json.loads(line)['title'][:TITLE_MAX_LENGTH]
+            for line in lines:
+                story = preprocess_sentence(json.loads(line)['content'])[:CONTENT_MAX_LENGTH]
+                summary = preprocess_sentence(json.loads(line)['title'])[:TITLE_MAX_LENGTH]
                 yield {"inputs": story, "targets": summary}
     else:
-        TEST_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
+        TEST_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.validation_set.txt")
         with tf.gfile.Open(TEST_DATA_PATH, "r") as f:
             lines = f.readlines()
-            for line in lines[int(len(lines)/2):]:
-                story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
-                summary = json.loads(line)['title'][:TITLE_MAX_LENGTH]
-                yield {"inputs": story, "targets": summary}
+            for line in lines:
+                story = preprocess_sentence(json.loads(line)['content'])[:CONTENT_MAX_LENGTH]
+              # summary = preprocess_sentence(json.loads(line)['title'])[:TITLE_MAX_LENGTH]
+                yield {"inputs": story, "targets": ''}
 
   @property
   def vocab_filename(self):
     return wiki_lm.LanguagemodelEnWiki32k().vocab_filename
-  @property
-  def packed_length(self):
-    return 512
-
-@registry.register_problem
-class HeadlineTest(HeadlineByte):
-  """Headline Test for byte competetion"""
-  @property
-  def dataset_splits(self):
-    """Splits of data to produce and number of output shards for each."""
-    return [{
-        "split": problem.DatasetSplit.TEST,
-        "shards": 1,
-    }]
-
-  @property
-  def vocab_filename(self):
-    return HeadlineByte().vocab_filename
-
-  @property
-  def packed_length(self):
-    return None
-
-  def is_generate_per_split(self):
-    return True
-
-  def generate_samples(self, data_dir, tmp_dir, dataset_split):
-    del data_dir
-    del tmp_dir
-    """Generate samples."""
-    if dataset_split == problem.DatasetSplit.TEST:
-        EVAL_DATA_PATH = os.path.join(TASK_DATA_DIR, "bytecup.corpus.train.8.txt")
-        with tf.gfile.Open(EVAL_DATA_PATH, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                story = json.loads(line)['content'][:CONTENT_MAX_LENGTH]
-                yield {"inputs": story, "targets": ''}
 
 @registry.register_hparams
 def transformer_headline():
-  hparams = transformer_big()
-  hparams.prepend_mode = "prepend_inputs_masked_attention"
-  update_hparams_for_tpu(hparams)
-  return hparams
-
-@registry.register_hparams
-def transformer_headline_test():
   hparams = transformer_base()
   hparams.prepend_mode = "prepend_inputs_masked_attention"
-  update_hparams_for_tpu(hparams)
-  hparams.batch_size = 2048
+  hparams.max_length = 0
   return hparams
