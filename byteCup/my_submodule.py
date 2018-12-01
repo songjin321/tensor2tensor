@@ -122,6 +122,6 @@ class HeadlineByte(text_problems.Text2TextProblem):
 @registry.register_hparams
 def transformer_headline():
   hparams = transformer_base()
-  hparams.prepend_mode = "prepend_inputs_masked_attention"
+  hparams.prepend_mode = "prepend_inputs_full_attention"
   hparams.max_length = 0
   return hparams

@@ -2,8 +2,8 @@
 
 PROBLEM=headline_byte
 MODEL=transformer
-HPARAMS=transformer_prepend
-USER_DIR=$HOME/tensor2tensor/byteCup
+HPARAMS=transformer_headline
+USER_DIR=./byteCup
 STORAGE_BUCKET=gs://bytecup2018/tensor2tensor
 DATA_DIR=$STORAGE_BUCKET/t2t_data
 TRAIN_DIR=$STORAGE_BUCKET/t2t_train/headline_byte_GPU
